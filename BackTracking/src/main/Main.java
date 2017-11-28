@@ -26,7 +26,9 @@ public class Main {
 			 {false, false, true, true, false, true},
 			 {true, true, false, false, true, false}};
 		
-		State s = new GraphColoringState(6, colors, graph);
+		List<String> currentState = new ArrayList<String>(graph.length);
+		
+		State s = new GraphColoringState(graph.length, colors, graph, currentState);
 		State result = bt.backtrack(s);
 		
 	}

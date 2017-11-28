@@ -1,5 +1,6 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraphColoringState implements State {
@@ -7,6 +8,7 @@ public class GraphColoringState implements State {
 	int numNodes;
 	int currentNode;
 	List<String> colors;
+	List<String> currentState;
 	boolean[][] connections;
 	
 	/**
@@ -16,11 +18,12 @@ public class GraphColoringState implements State {
 	 * @param colors List of colors we can use to color the graph
 	 * @param connections 2D array of boolean values used to indicate connections of the nodes
 	 */
-	public GraphColoringState(int numNodes, List<String> colors, boolean[][] connections) {
+	public GraphColoringState(int numNodes, List<String> colors, boolean[][] connections, List<String> currentState) {
 		this.numNodes = numNodes;
 		this.currentNode = 0;
 		this.colors = colors;
 		this.connections = connections;
+		this.currentState = currentState;
 	}
 	
 	/**
@@ -28,10 +31,16 @@ public class GraphColoringState implements State {
 	 * @param gcs Parent state
 	 */
 	public GraphColoringState(GraphColoringState gcs) {
+		//Shallow copy
 		this.numNodes = gcs.numNodes;
 		this.currentNode = gcs.currentNode;
 		this.colors = gcs.colors;
 		this.connections = gcs.connections;
+		//Deep copy
+		this.currentState = new ArrayList<String>(connections.length);
+		for(String color : gcs.currentState) {
+			this.currentState.add(color);
+		}
 	}
 	
 	/**
@@ -48,17 +57,28 @@ public class GraphColoringState implements State {
 	 */
 	@Override
 	public State nextChild() {
-		GraphColoringState child = new GraphColoringState(this);	//Shallow copy
-		return null;
+		GraphColoringState child = new GraphColoringState(this);	//Copy the parent
+		child.currentNode = this.currentNode + 1;					//Update the node we are manipulating
+//		child.currentState.get(child.currentNode) = 				//Cycle the color to the next option
+		return child;
 	}
 	
 	/**
-	 * TODO THIS
 	 * If the move would follow all the rules of not allowing adjacent colors
 	 */
 	@Override
 	public boolean isFeasible() {
-		return false;
+		boolean feasible = true;
+		String currentColor = this.currentState.get(currentNode);
+		boolean[] nodeConnections = this.connections[this.currentNode];	//Grab the connections for our node
+		for (int i = 0; i<nodeConnections.length; i++) {
+			if(nodeConnections[i]) {
+				if(currentState.get(i).equals(currentColor)) {			//If a node we have a connection to has the same color as our own, it will not work
+					feasible = false;
+				}
+			}
+		}
+		return feasible;
 	}
 	
 	/**
@@ -70,8 +90,7 @@ public class GraphColoringState implements State {
 	}
 	
 	/**
-	 * TODO THIS
-	 * Lol fuck if I know
+	 * 
 	 */
 	@Override
 	public int getBound() {
